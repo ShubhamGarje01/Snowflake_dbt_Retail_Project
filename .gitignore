@@ -1,0 +1,16 @@
+
+# dbt generated files
+target/
+dbt_packages/
+logs/
+.DS_Store
+
+# Credentials and local environment
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Local dbt profiles
+profiles.yml

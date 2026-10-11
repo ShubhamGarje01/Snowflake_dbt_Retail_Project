@@ -1,0 +1,16 @@
+models:
+  - name: dim_emp_test
+    description: "Contains emp information - Test Data"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        data_tests:
+          - unique
+          - not_null
+
+      - name: country
+        description: "Contains emp Country info - Test Data"
+        data_tests:
+          - accepted_values:
+              values:
+                - INDIA 

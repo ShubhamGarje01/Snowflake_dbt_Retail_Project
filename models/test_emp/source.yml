@@ -1,0 +1,17 @@
+sources:
+    - name: raw_data
+      description: Raw data source table
+
+      database: LBDI_Retail
+      schema: Stage_Layer
+
+      tables:
+        - name: emp_test1
+          description: employee test/dummy data 
+        #  columns:
+        #    - name: id
+        #      tests: 
+        #      - unique
+# this way we can configure the tests into source file
+        - name: dim_emp_info
+          description: employee dimention table same as emp_test1
