@@ -11,7 +11,23 @@ sources:
         #  columns:
         #    - name: id
         #      tests: 
-        #      - unique
+        #      - unique    
 # this way we can configure the tests into source file
         - name: dim_emp_info
           description: employee dimention table same as emp_test1
+
+        - name: emp_test2
+          description: Table created to test & understand the Source Freshness of data in DBT
+                      # BELOW WE ARE COBFIGURING THE SOURCE FRESHNESS FOR  EMP-TEST2  TABLE
+          config:
+            loaded_at_field: load_time
+
+            freshness:
+              warn_after:
+                count: 1 
+                period: hour  # how frequently we want to check the data, based on how fequently we get the data from source systems.
+                                # as per this config, it will check at every min, if new data has come, if not then it will give warning
+              error_after:
+                count: 2
+                period: hour  # we can  use minute, hour etc
+                          # as per this config, it will check for the data every 2 min, if new data has come, if not then it will give error
