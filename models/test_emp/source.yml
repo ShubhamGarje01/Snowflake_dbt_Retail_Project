@@ -16,6 +16,7 @@ sources:
         - name: dim_emp_info
           description: employee dimention table same as emp_test1
 
+
         - name: emp_test2
           description: Table created to test & understand the Source Freshness of data in DBT
                       # BELOW WE ARE COBFIGURING THE SOURCE FRESHNESS FOR  EMP-TEST2  TABLE
@@ -31,3 +32,7 @@ sources:
                 count: 2
                 period: hour  # we can  use minute, hour etc
                           # as per this config, it will check for the data every 2 min, if new data has come, if not then it will give error
+                
+
+        - name: EMP_INCREMENTAL
+          description: Table created to test & understand the Incremental Models in DBT
