@@ -1,0 +1,690 @@
+				--------------------------------------------------------
+				-----##: Snowflake + AWS + DBT Project : Airbnb :##----- 	YT - Ansh Lamba 
+				--------------------------------------------------------
+				
+DBT Tool = Data Build Tool 
+DBT is not ETL or ELT tool, its a data Transformation Tool to Transform the data. 
+
+DBT dosent have its own storage, dont have own computation. It only provides the code templates. It will use your storage & compute (snowflake, databricks, fabrik) these are called as adapters.
+
+
+Setup: 
+	1) Install Python 3.12.xx, as DBT supports 3.12 and below python versions. 
+	2) Install Git for GitHub
+	3) Install VSCode 
+			- On VS Code terminal, install uv library
+			- using uv library we install dbt-core & dbt-snowflake for vscode
+			- using uv (init & sync) we generated files for dbt projects
+
+
+profiles.yml :--> 
+	
+		file contains the username, password, role, account, database, schema, warehouse and other information about the snowflake, which we have provided while creating connection between snowflake & dbt.
+
+profiles.yml = Connection details (it can be for Snowflake, Databricks, Fabric or for all at a time)
+profiles.yml tells dbt where and how to connect to Snowflake.
+
+or in our case profiles.yml tells dbt "Connect to this Snowflake environment using these credentials and settings from profiles.yml file."
+
+
+dbt_project.yml :--> 
+		
+		this file is the backbone of dbt project. 
+dbt_project.yml tells dbt how your project is structured and how models should be built.
+dbt_project.yml = Project configuration
+
+profiles.yml is the configuration file that tells dbt how and where to connect to data warehouse (e.g., Snowflake, PostgreSQL).
+It contains details like account, database, schema, warehouse, username/authentication, and target environment (dev/prod).
+
+
+
+name = project_name & it should be exactly same as profiles.yml file.
+target = environment of connector (in our case Snowflake) 
+profile = Which connection configuration to use from profiles.yml
+
+dbt_project.yml chooses the profile.
+profiles.yml tells dbt how to connect & whom to connect.
+
+How dbt_project.yml and profiles.yml connect ?
+
+when dbt_project.yml reads profile: snowflake_dbt, then dbt looks inside profiles.yml for profile: snowflake_dbt:, and find snowflake details like account, user, password, database, schema etc. 
+
+dbt_project.yml is the main configuration file of a dbt project.
+It tells dbt how the project is structured and how models, seeds, snapshots, and tests should behave.
+It contains settings like project name, model paths, materialization (table/view/incremental), and configurations.
+
+
+Materialization = tells dbt what type of Snowflake object to create from your SQL model. If materialize = view then when we ran sql select command, the view for that command gets generated in snowflake. for table materialize = table 
+
+we can change the materialization type more than one place. It can be (Table, View, etc)
+we can create yml file in models folder and mentioned materialization type, declaring here has more precedence than declaring in dbt_project.yml file. 
+The most highest power in highrachy is to mentned materialization at the top of model (sql file) 
+
+ex:--> 	{{config(materialized = 'table')}} --> Highest precedence
+select * from table where .....
+
+materialized can be table, view, dynamic_table, incremental → incrementally builds a TABLE, ephemeral → SQL is inlined; no physical object is created etc. 
+
+
+The materialization type mentioned in dbt_project.yml file has the lowerst precedence, and materialization mentioned in the model file has the highest precedence.
+
+
+
+
+Models = 
+-- SQL files that dbt uses to create Snowflake objects. lets say we write select query and we ran it on dbt, dbt takes your SQL and executes on snowflake. 
+ 
+-- Model = .sql file
+-- Mostly contains a SELECT statement.
+-- dbt executes the SQL and creates a view/table/incremental table, depending on materialization.
+-- You write SQL → dbt manages how that SQL becomes a Snowflake object.
+-- in .sql model files, semicolan at the end of query gets added by DBT, so if we add then it will give error.
+
+sql file name = model name 
+
+the select statement will remains the same, DBT handles the DDL statements for different adaptors (Snowflake, Fabric, Databricks etc). 
+When new sql files are created, those needs to be associated with jinja sql. & same for dbt_project.yml, for this JINJA YAML. 
+
+
+ref function in model. {{ ref('Model_Name') }}
+
+
+Sources  in DBT :--> We can not see the demo model lineage, meanse no source for demo model in vs code lineage output. We need to create source and enabled model lineage on top of source.
+
+
+
+JINJA : Templateting language allows us to write special parameters into SQL code 
+-- {{ }} = print a value
+-- {% %} = execute Jinja logic
+
+
+
+
+Macros :  
+
+Macros are build using JINJA. 
+
+
+
+
+Joins in JINJA template: 
+
+medallion architecture :------> Bronze Layer - Silver Layer - Golden Layer - 
+
+
+
+Bronze to Silver : Full Data Load + Incremental Data Load --- Use Case in details
+
+
+in gold layer we cau build -- 1) OBT (One Big Table)
+							  2) 
+
+
+Metadata-Driven Pipelines DBT :--->  Use Case in details
+
+
+DBT Snapshots : 
+
+commands :  dbt compile
+			dbt run 
+			dbt build 
+			dbt clean  --> to clean recent ran query files & target folder 
+			dbt snapshot
+			dbt run --select gold ---> run all the files available inside GOLD model
+
+Ephemeral Models :
+	
+	Meaning:
+	Pros: 
+	Cons: 
+
+
+-- get more info on below tables: 
+
+data tests in dbt : as an user always need to apply tests on source side. in this case we are puling data from S3 as it is in snowflake staging schema, so we are gonna apply the tests on staging schema. 
+If we mentioned the severity = 'warn' - the it will gave warning only, and if severity is not mentioned or mentioned as error, then it will get errored out. severity default = error. 
+
+
+singular test :-->  writing sql in such way, that query should not return any rows, if it does, then testing failed. we need to create a sql / yml file and put it into test folder. 
+
+generic test :-->  
+
+severity singular test dbt : google 
+
+
+
+A = Addition
+D = Deletion 
+M = Modification
+
+
+
+
+							-------------------------------------
+							-----##: DBT on Snowflake UI :##-----	YT - Claude Learning Yard 
+							-------------------------------------
+				
+				
+				
+				
+				
+				
+				
+				
+				
+DBT does not store data, it works on top of data warehouse for data transformation.  
+
+DBT is the "T" in ETL process, which helps to transform the data. Instead of writing complex SQL queries, we can write simple SELECT SQL statements & DBT will take care of everything from figuring out the right order to run your models to building these models in data warehouses. 
+
+Data is loaded into the warehouse first, and dbt performs the transformation inside the warehouse. User can execute DBT commands from Snowflake warehouse. 
+
+DBT makes it easy to add tests & documentation to data models. 
+
+
+DBT project is a Schema level object in Snowflake containing source files of DBT project. User can connect DBT project to Snowflake Workspace or user can create & manage the DBT objects independently of workspace. 
+
+
+
+Project Flow : 
+	
+Workspace Development --> Git Integration --> DBT Profile Configuration --> Deploy Project Objects --> Execute & Test --> Scehdule (Tasks) & Monitor
+
+-- Git Integration::
+-- 1) create git secret, api integration, create Git Repo with GitHub DBT Project files and github profile link by selecting secret. 
+
+-- Workspace Development::
+-- 2) Create new workspace (+) Git Workspace and provide git repo link and other details.
+-- 3) we can see new workspace named as GitHub repository name where DBT projects file are.
+-- 4) under newly created workspace name we have options : FILES - CHANGES, under changes, we can add new or change the current github branch.
+
+
+-- DBT Profile Configuration::
+
+aborted, as no additional info was in video.
+
+
+
+
+
+
+
+
+
+
+								----------------------------------------------------------
+								-----: Complete DBT Course with Snowflake : Project :-----	YT - Learn by doing it 
+								----------------------------------------------------------
+
+
+			
+
+
+
+
+
+
+To apply DBT transformations, the data should be available in snowflake staging/parking area in table. Then DBT transformations can be applied on top of that snowflake staging/parking table. 
+
+whenever we have to perform transformations on existing data/tables then we use DBT. 
+
+
+
+Normal Proect Flow : 
+
+Source Systems (SAP, API, DB, CSV, etc) --- ETL/ELT ---> snfk (raw layer) --- DBT Transformations ---> 
+
+
+
+ETL/ELT = Informatica PowerCenter / IICS / ADF
+DB = Oralce / SQL Server / Postgres
+DBT Transformations = Data Cleaning, De-Duplication, Required Format of data, In-consistant data handling, null handling, etc.
+
+
+DBT Helps organizing files, set dependencies and maintain the liniage visualization.
+
+
+DBT is a framework that helps to organize, manage, test, document & execute SQL transformations.
+
+
+## DBT Commands :--> 
+
+dbt init project_name :--> this command creates the file & folder structure, but before that, it will ask for database info, db account info, username, password, and other basic info. 
+
+dbt debug :---> after the project creation its used to check if the connection between DBT & Snowflake has been happend or not. 
+
+dbt compile :--> compiles the existing whole project.
+
+dbt run :--> execute the whole dbt project. 
+
+dbt run --select model_name :--> to run specific model only. Model Names = Files inder model, just pass file name without .sql extention.  I notice that even if we pass the .sql extention still it runs fine. 
+
+dbt run --select tag:tag_name :--> to run specific tags models only.
+
+dbt test :-->  to execute data quality and unit tests across your dbt project. If test fails, that means there are records, which are not correct as per test rules. 
+
+dbt test --select test_name :--> to run specific test from multiple tests.
+
+dbt docs generate :--> TO generate documentation of model/project. 
+
+dbt docs serve :--> To see auto generated DBT project docs on browser.
+
+dbt source freshness :--> this command runs a query against your Snowflake source table to check when its data was last loaded or updated. It does not update the source table or refresh the data. It only checks freshness and reports the result.
+
+dbt seed :--> to run seeds, and convert CSV under seeds into table.
+
+dbt snapshot :--> to run the snapshots
+			
+				--------------------------------
+				----: DBT Folder Structure :---- 
+				--------------------------------
+
+## Models :--> 
+A model in dbt is a SQL file that contains the logic for transforming raw/source data into clean, business-ready data.
+dbt executes these SQL models and creates database objects such as tables, views, or incremental tables.
+Models can also reference other models using {{ ref() }}, allowing dbt to automatically manage dependencies and execution order.
+
+Model Name or Model File Name will be the object name in snowflake automatically. 
+
+
+## Models Folder :--> 
+All data transformation logic has to be in model folder. Under this folder we can create multiple SQL files. 
+Ex: Customer.sql, product.sql and the transformation logic in sql files. 
+When we execute dbt run command, dbt will take this SQL code and will create a table or view inside snowflake. 
+
+((The models folder contains the SQL files that define how your data should be transformed.
+Each model usually represents a table or view that dbt creates in the target database.
+You write the transformation logic using SQL, and dbt handles execution, dependencies, and creation of the final objects.))
+models = Where you write your data transformation/business logic.
+Models are the core building blocks of a dbt project. They can be layered (e.g., staging → intermediate → marts) and dbt builds them in the correct dependency order using ref().
+
+If we are creating additional folder under Models folder, then same thing we have to mentioned in the dbt_project.yml file as well with materialization option.
+
+By mentioning materialization in model file, we can override the materialization provided in dbt_project.yml file. Since model has the higher precedence.
+
+
+## Macros :--> 
+A macro in dbt is a reusable block of Jinja + SQL logic. Its similar to sql functions.  
+With the help of macros, we can avoid the repeating same SQL logic across multiple models and can have dynamic sql based on parameters. 
+
+Macros are especially useful for common business logic, dynamic SQL generation, or operations where code can be re-use across multiple models. 
+
+macros = Reusable functions/blocks of SQL logic in dbt.
+
+
+## Macros Folder :--> 
+The macros folder contains reusable SQL/Jinja code that you can use across multiple models.
+Macros help you avoid writing the same logic repeatedly and make your dbt code cleaner and easier to maintain.
+They can also be used to create dynamic SQL, such as generating column names or applying common transformations.
+
+
+## DBT Models Use Case point : 
+
+I created a Vendor model in dbt. The requirement was to take vendor data from the source layer, apply the required business transformations and cleansing, and create a standardized vendor dataset in the target/reporting layer.
+I first understood the source-to-target mapping and business rules, then created the dbt model using SQL. I used ref() to connect it with upstream models, applied joins, filters and transformations, and finally validated the record counts and data against the source and downstream requirements.
+
+
+## DBT Macros Use Case point :
+
+1) Vendor Name → Uppercase
+Created a macro to convert vendor names to uppercase:
+
+		{{ to_upper('vendor_name') }}
+
+## SQL JINJA syntax : 
+
+		{% macro to_upper(column_name) %}
+
+			UPPER({{ column_name }})
+
+		{% endmacro %}
+
+## Use in Model:
+
+		SELECT
+			{{ to_upper('vendor_name') }} AS vendor_name
+		FROM {{ ref('stg_vendor') }}
+
+2) Standardize Vendor Name
+Create a macro to remove extra spaces and standardize vendor names:
+
+		{{ clean_vendor_name('vendor_name') }}
+
+## SQL JINJA syntax: 
+
+		{% macro clean_vendor_name(column_name) %}
+
+			UPPER(TRIM({{ column_name }}))
+
+		{% endmacro %}
+
+## Use in Model:
+
+		SELECT
+			{{ clean_vendor_name('vendor_name') }} AS vendor_name
+		FROM {{ ref('stg_vendor') }}
+
+3) Handle NULL Vendor Values
+Create a reusable macro to replace NULL/blank vendor values with a standard value = 'UNKNOWN'
+
+## SQL JINJA Syntax:
+
+		{% macro handle_null_vendor(column_name) %}
+	
+			COALESCE(NULLIF(TRIM({{ column_name }}), ''), 'UNKNOWN')
+
+		{% endmacro %}
+
+## Use in Model:
+
+		SELECT
+			{{ handle_null_vendor('vendor_name') }} AS vendor_name
+		FROM {{ ref('stg_vendor') }}
+
+
+I created macros for repetitive vendor transformations like converting Vendor Name to uppercase, standardizing vendor names and and handling NULL values. Instead of repeating the same SQL across multiple models, I created reusable macros and called them wherever required.
+
+
+
+## Analysis Folder :--> The analysis folder stores SQL queries for analysis or, for reporting. Which we don't want to get materialize as tables/views by DBT. The queries can use dbt features like ref() and Jinja, just like models.
+Analysis is useful for ad-hoc analysis, data investigation, or generating reports without creating permanent database objects.
+
+analysis = SQL queries for analysis, not production models. 
+
+
+models     →  Build actual data objects
+analysis   →  Investigate/analyze data
+macros     →  Reusable SQL logic
+
+
+Sometimes business asks for one time analysis, for which we dont have to create permanent object in database, that time we can go for analysis. So we create a SQL query and run it manually whenever needed.
+
+
+## Tests & Tests Folder :--> The Tests are used to validate the quality and correctness of your data after models are built. Tests help identify problems like NULL values, or duplicate records. DBT provides built-in tests, and you can also create custom SQL tests for specific business rules.
+
+Ex 1) not_null 
+
+		columns:
+			- name: vendor_id
+			data_tests:
+				- not_null
+
+
+
+ex 2) unique 
+
+		columns:
+			- name: vendor_id
+			data_tests:
+				- unique
+				
+tests = A safety check to make sure your transformed data is correct and reliable.
+
+tests used to validate the data quality, for that we have few in-build quality checks and developers can write their own data quality checks. 
+If test fails, that means we have record that is not following test rules. Ex. in not null column, if there is null, then it fails. in unique, if we provide duplicate, then it fails. 
+
+To create new user defined tests, we need to create schema.yml file under model or subsequent folder. in this schema.yml file we need to provide model name, column name for which we are implementing test and data_tests: what are the actual tests we are trying on data. (ex. unique, not_null etc).
+
+with this, we can also use test for allowing only specific values in columns using accepted_values parameter in schema.yml file. 
+
+test cases has to write as if we are writing it for bad records, or negative scenarios, like salary < 0, etc.
+
+
+
+## Snapshots :--> its used to track changes to records over time. It captures the previous version of a record when important columns change, so we can see what the value was before and when it changed.
+This is commonly used to implement SCD Type 2. The snapshot keeps both versions, along with timestamps showing when the old record became inactive and the new record became active.
+
+snapshot = Keeps the history of how your data changed over time.
+
+ex. yesterday the vendor address was pune, today its mumbai. Snapshot will keep both addresses as history and will display the active one. 
+
+
+
+## Seeds :--> The seeds folder contains CSV files that have small, static datasets which we want to load into your data warehouse using dbt. We can also say reference data, like country table with country_code & region_name. this data is more static & reference and wont change or rarely changes with time.
+
+Ex: Genders, Status, categories etc.
+
+CSV can contains category_code, category_name and like these more columns or more reference data sets / seeds.
+
+we can use the seeds in models using -- SELECT * FROM {{ ref ('VENDOR_CATEGORY') }}
+
+seeds = CSV files containing small, static/reference data that dbt loads into the database as tables.
+
+
+
+## Logs :--> The logs folder stores information about dbt runs and executions. It helps us troubleshoot problems by showing errors, warnings, executed queries, start time, end time and other execution details.
+The main log file is usually dbt.log 
+Ex: If a model fails because of a SQL error, you can check dbt.log to understand which model failed and what error occurred.
+
+logs = A record of what happened during dbt execution, mainly useful for troubleshooting.
+
+
+## dbt_project.yml :--> is the main configuration file for a dbt project. We can configure things like project name, materialization, schema, database, tags, and model-specific settings.
+
+dbt_project.yml = The main configuration/settings file that controls how your dbt project works.
+
+
+## profiles.yml :--> profiles.yml contains the connection details that dbt uses to connect to your data warehouse, like  Snowflake. It includes details like account, username, authentication, database, schema, warehouse, and target environment. A single profiles.yml can contain profiles for multiple dbt projects.
+
+
+
+DBT will not execute the sql queries, it will send these queries to snowflake for execution, the computation of snowflake will be used for query execution. 
+
+
+## ref function :--> is used to refer to another dbt model in your current model. It tells dbt that there is a dependency between the two models, so dbt automatically builds them in the correct order.
+
+ref function references to another dbt model, and manages model dependencies automatically. ref function allow same code to work all work environments.
+
+ref() is used to reference another dbt model without hardcoding its database/schema/table name.
+It creates a dependency, so dbt automatically understands which model should run first.
+
+ref() = Connects one dbt model to another and manages the dependency automatically.
+
+When we are refering the model A in model B, then we are refering the final output of model A in model B.
+
+
+## alias in dbt :--> Model Names in dbt becomes object names in snowflake by default, but in-case we want to provide specific name to snowflake object, then we can use alias. 
+
+In model file, as we mentioned, materialized under config, same way we can mentioned alias after materialized.
+
+Example: 
+	Model file name : dim_emp.sql 
+
+file content : 
+
+	{{ config(materialized = 'table', alias = 'dim_emp_final') }}
+	select * from {{ ref('dim_emp_test') }}  
+	
+so as per alias parameter, this model will create a table named dim_emp_final even though model file name = dim_emp.sql
+
+
+## Tags in dbt :--> tags are the labels,  assigned to models, seeds, snapshots, or tests to logically group them. They are useful for selecting and running a specific group of objects instead of running the entire project.
+For example :--> Models can be tag as vendor, customer, or daily, weekly, etc.
+
+tags = Labels used to organize and selectively run dbt objects.
+
+Example: we have 500 model or 500 sql files in models folder. out of which 25 files are of finance data, and the requirement is to run only Finance related models/files, how are we gonna do that ? and data can be more distributed like, 50 models/files of sales or 35 models of customers etc.
+
+1) Manually running using --select for all 25 files everytime is not possible.
+
+2) we can use tags. One dbt model can have multiple tags.
+
+Under config, we can also specify the tags, along with materialized, alias and all.
+
+Tags configure in Model File sample :
+
+			{{ config(materialized = 'table', alias = 'emp_alias_tag_finance', tags = ['finance']) }}
+			select * from {{ ref('dim_emp_info') }}
+			
+To run specific tags related models use below command
+
+dbt run --select tag:tag_name
+
+
+## Generate Documents : --> To understand model info & dependencies for new person, documentation is imp. everything we mentioned in schema.yml file under different models, using them dbt built documentation automatically. We need to use the below command.
+
+dbt docs generate --> TO generate documentation of model/project. 
+
+All the docs generated will be available under target folder. but if we want to see them on web browser, then we can use command.
+
+dbt docs serve --> To see auto generated DBT project docs on browser.
+
+
+## Source.yml :--> When we load the data from third party storage to snowflake staging, we treat those stage data as source for dbt. and on that source data we will perform transformations using dbt. In source.yml file we mentioned these source tables path hardcode. Database.Schema.Table_name which DBT will consume from database. 
+
+In Source.yml file we define and document the raw source tables, and then use source() function in models, instead of hardcoding the source table names everytime. 
+
+source.yml  →  Where my raw data comes from
+models      →  How I transform that data
+ref() 	    →  How my models depend on each other
+
+
+Source.yml file advantage :--> In case in future, the source database changes, so instead of changing it from everywhere, we need to change it in source.yml file only. 
+
+source function :--> {{ source('source_nm given in yml file', 'table_name only') }}
+
+in source.yml file we can also pass tests for columns, for each table mentioned in source.yml file. 
+
+
+
+## Source Freshness :--> Source freshness checks how recently the source data was updated, so we know whether the data is fresh enough for reporting.
+In source.yml, we define thresholds such as warn_after and error_after. dbt checks the source data timestamp column against the current time. If the data is older than the threshold, dbt gives a warning or error.
+
+dbt source freshness :--> this command runs a query against your Snowflake source table to check when its data was last loaded or updated. It does not update the source table or refresh the data. It only checks freshness and reports the result.
+
+For example, if your Vendor table was last updated 30 hours ago and your error_after threshold is 24 hours, dbt reports an error-level freshness status
+
+What it does in the database:--> 
+	
+	1. Reads the configured timestamp column (loaded_at_field).
+	2. Finds the latest timestamp in the source table.
+	3. Compares it with the configured warning/error thresholds.
+	4. Reports whether the source data is fresh, stale, or missing.
+	
+
+how to configure a source freshness condition ?
+
+Go to source.yml file from models folder --> define table details on which source freshness needs to be configured --> under config, mentioned the timestamp column for "loaded_at_field", because we need to mention for which column we need to check freshness for, and below that freshness warn_after / error_after and rest info.
+
+
+Without configuring first, we cant use Source Freshness command. For configuration details, check source.yml from models folder. 
+
+Once we ran the command, dbt source freshness : we can see if fresh data exist, then data freshness will get passed, else warning or error as we have set it up.
+
+
+
+## Seeds :--> If we put a CSV file in Seeds folder dbt will load that csv file into snowflake by creating a table. 
+
+DBT will create table in snowflake to load CSV file available in seeds folder. We use this functionality when data is static and small like country, currency, status etc. 
+
+Seeds are only for CSV files, not for other formats. Seeds are only for static & small data only.
+We can also use seeds for data mapping.
+
+Mapping changes can be made directly in the CSV without modifying SQL logic, making the solution easier to maintain, reuse, and review.
+
+Tables created by seeds with static data, mostly used as lookup tables. 
+
+why  not use ETL (IICS or ADF) instead of seeds : Cause CSV file contains small data, like 10 records or 20 or maybe 30 40. for these many records creating a heavy pipeline is not worth, when anyways its gonna be run once in a while. 
+
+how to add CSV file to Seeds folder : Copy the file --> go to VSCode - Click on seeds Folder and ctrl + v. 
+
+dbt seed :--> to run seeds, and convert CSV under seeds into table.
+
+CSV file name will be table name. Once table is created, it will become part of DBT model, so we can refer it using ref() function like normal model_name. while refering, make sure its case sensitive. 
+
+In this case 
+    select * from {{ ref('order_status') }}
+	
+	
+	
+## Snapshots :--> Snapshots in dbt are used to track historical changes in records. Its commonly used to implement SCD Type 2.
+
+Snapshot: Detects changes in source records and maintains historical versions.
+dbt_valid_from : start date
+dbt_valid_to : end date 
+
+
+example :
+customer changes their city from Pune to Mumbai.
+
+CUSTOMER_ID	--	CITY	--	DBT_VALID_FROM	--	DBT_VALID_TO
+
+   101			Pune		Jan 1					Jan 10
+   101	        Mumbai		Jan 10					NULL
+
+Instead of overwriting Pune with Mumbai, the snapshot preserves the old record and creates a new version.
+
+There area 2 strategies of implementing snapshots:
+
+	1) Timestamp Strategy :
+		when data have columns like Insert_date, Update_date, last_modified_date etc. 
+
+	2) Check Strategy :
+		when source data has no timestamp columns, then DBT compares the columns for data change, and it finds any, it will create a snapshot. 
+		
+dbt snapshot :--> to run the snapshots
+
+after making changes in data, we need to run dbt snapshot command, so changed data can be visible under snapshot table. 
+
+for snapshot implementation check file snfk_bdt.sql 
+
+
+
+## JINJA :--> Jinja is used to generate dynamic SQL instead of writing repetitive, static SQL code. It supports variables, loops, conditions, and macros to make SQL reusable and flexible.
+In jinja {{ }} is used to print variables or call functions, while {% %} is used for logic such as loops and conditions.
+
+Main benefit: It reduces code duplication and helps build scalable, metadata-driven data pipelines.
+
+dbt processes Jinja during compilation and generates the final SQL that runs against your data warehouse.
+
+In SQL we can use If-Else statements, for loop, variables, but in JINJA we can use them, and this way we can make SQL code more dynamic.
+SQL = Query Language, still using JINJA we can use programming laguage functions to SQL. 
+
+SQL --> select * from emp; -- on db, it will directly, without mentioning database & schema.
+JINJA --> select * from {{ ref('emp') }}
+		{ ref('emp') }} ---> convert into sql as database.schema.emp 
+		
+In DBT we use Jinja SQL, the combination of both.
+
+
+in snowflake :--> select 'Hello There' as msg;
+in JINJA :--> select '{{"Hello there}}'
+
+For more syntax and detailed notes for Jinja, visit snfk_dbt_retail --> models --> JINJA
+
+
+## Incremental Models :--> Models which loads only new or changed records instead of re-loading the entire dataset every time. 
+
+ex: If yesterday we got 100 records (Full Load), today 105 records. out todays 105 records, 100 are yesterdays. so today instead of loading all 105, we need to load only 5 records, which are new. 
+
+
+
+## Macros :--> A macro in dbt is a reusable block of Jinja + SQL logic. Its similar to sql functions.  
+With the help of macros, we can avoid the repeating same SQL logic across multiple models and can have dynamic sql based on parameters. 
+macros = Reusable functions/blocks of SQL logic in dbt.
+
+One macro can be called in multiple models. 
+For more & practicles info check macros folder in VSCode.
+
+
+## DBT Hoocks :--> Hooks are SQL statements that dbt automatically runs at specific points during a dbt run or model execution. It let user perform additional actions before or after running a model, seed or snapshot.
+
+Before running the model, if we want to perform any operation or after model run we want to perform any operation, then we use hook.
+
+hook types :
+	1) PRE HOOK : executes SQL before a model runs. Example: delete old temporary records before loading.
+	2) POST HOOK : executes SQL after a model runs. Example: make entry in audit_log table. 
+		
+			pre hook --- MODEL --- post hook 
+Hooks = SQL actions that run automatically before or after a dbt model executes.
+
+both pre & post hooks are defined in config part of model. 
+
+for use case check VSCode model : dbt_hook.sql and snowflake file. 
+
+
+## dbt Packages :--> dbt Packages are like python libraries. Its the pre-built collections of macros, tests, and other reusable dbt code created by the community.
+
+dbt_utils package :--> Provides reusable macros for tasks like generating surrogate keys, deduplicating data, and working with SQL.
+
+Packages = Reusable dbt functionality built by others that saves development time.
+
